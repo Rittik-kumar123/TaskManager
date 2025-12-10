@@ -1,0 +1,82 @@
+import React from 'react'
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Outlet,
+  Navigate,
+} from 'react-router-dom';
+import Login from './pages/Auth/Login';
+import SignUp from './pages/Auth/SignUp';
+
+import Dashboard from './pages/Admin/Dashboard';
+import ManageTasks from './pages/Admin/ManageTasks';
+import CreateTask from './pages/Admin/CreateTask';
+import ManageUsers from './pages/Admin/ManageUsers';
+
+import UserDashboard from './pages/User/UserDashboard';
+import MyTasks from './pages/User/MyTasks';
+import ViewTaskDetails from './pages/User/ViewTaskDetails';
+
+import PrivateRoute from './routes/PrivateRoute';
+import UserProvider, { UserContext } from './context/userContext';
+import { Toaster } from 'react-hot-toast';
+
+
+const App = () => {
+  return (
+    <UserProvider>
+      <div>
+        <Router>
+          <Routes>
+            <Route path="/login" element={<Login/>}/>
+            <Route path="/signUp" element={<SignUp/>}/>
+
+            {/* admin Route  */}
+            <Route element={<PrivateRoute allowedRoles={["admin"]}></PrivateRoute>}>
+              <Route path="/admin/dashboard" element={<Dashboard/>}/>
+              <Route path="/admin/tasks" element={<ManageTasks/>}/>
+              <Route path="/admin/create-task" element={<CreateTask/>}/>
+              <Route path="/admin/users" element={<ManageUsers/>}/>
+            </Route>
+
+            {/* User Route  */}
+            <Route element={<PrivateRoute allowedRoles={["admin"]}></PrivateRoute>}>
+              <Route path="/user/dashboard" element={<UserDashboard/>}/>
+              <Route path="/user/my-tasks" element={<MyTasks/>}/>
+              <Route path="/user/task-details/:id" element={<ViewTaskDetails/>}/>
+            </Route>
+
+            {/* default Route */}
+            <Route path='/' element={<Root></Root>}></Route>
+
+          </Routes>
+        </Router>
+      </div>
+
+      <Toaster
+        toastOptions={{
+          className:'',
+          style:{
+            fontSize:'13px',
+          },
+        }}
+      ></Toaster>
+    </UserProvider>
+  )
+};
+
+export default App
+
+const Root = () => {
+  const {user , loading} = UserContext(UserContext);
+
+  if(loading) return <Outlet></Outlet>
+
+  if(!user)
+  {
+    return <Navigate to="/login"></Navigate>
+  }
+
+  return user.role === "admin" ? <Navigate to="/admin/dashboard"></Navigate>: <Navigate to="/user/dashboard"></Navigate>;
+};

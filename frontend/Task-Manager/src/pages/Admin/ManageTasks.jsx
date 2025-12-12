@@ -47,7 +47,30 @@ const ManageTasks = () => {
   }
 
   //download task Report
-  const handleDownloadReport = async()=>{};
+  const handleDownloadReport = async()=>{
+    try{
+      const response = await axiosInstance.get(API_PATHS.REPORTS.EXPORT_TASKS,{
+        responseType:"blob",
+      });
+
+      //create Url for the blob
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement("a");
+
+      link.href = url;
+      link.setAttribute("download","tasks_report.xlsx");
+      document.body.appendChild(link);
+      link.click();
+      link.parentNode.removeChild(link);
+      window.URL.revokeObjectURL(url);
+
+    }
+    catch(error)
+    {
+      console.error("Error downloading the expense detail..",error);
+      toast.error("Failed to download expense details . please try again ");
+    }
+  };
 
   useEffect(()=>{
     getAllTasks(filterStatus);

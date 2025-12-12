@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useContext } from 'react'
 import {
   BrowserRouter as Router,
   Routes,
@@ -41,9 +41,9 @@ const App = () => {
             </Route>
 
             {/* User Route  */}
-            <Route element={<PrivateRoute allowedRoles={["admin"]}></PrivateRoute>}>
+            <Route element={<PrivateRoute allowedRoles={["user","admin"]}></PrivateRoute>}>
               <Route path="/user/dashboard" element={<UserDashboard/>}/>
-              <Route path="/user/my-tasks" element={<MyTasks/>}/>
+              <Route path="/user/tasks" element={<MyTasks/>}/>
               <Route path="/user/task-details/:id" element={<ViewTaskDetails/>}/>
             </Route>
 
@@ -69,7 +69,7 @@ const App = () => {
 export default App
 
 const Root = () => {
-  const {user , loading} = UserContext(UserContext);
+  const {user , loading} = useContext(UserContext);
 
   if(loading) return <Outlet></Outlet>
 

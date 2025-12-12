@@ -32,7 +32,7 @@ const Dashboard = () => {
     const taskDistributionData = [
       {status: "Pending", count: taskDistribution?.Pending||0},
       {status: "In Progress", count: taskDistribution?.InProgress||0},
-      {status: "Complete", count: taskDistribution?.Complete||0},
+      {status: "Completed", count: taskDistribution?.Completed||0},
     ];
     
     setPieChartData(taskDistributionData);
@@ -109,7 +109,7 @@ const Dashboard = () => {
            <InfoCard
             label = "Complete Tasks"
             value={addThousandsSeprator(
-              dashboardData?.charts?.taskDistribution?.Complete || 0
+              dashboardData?.charts?.taskDistribution?.Completed || 0
             )}
             color="bg-lime-500"
           ></InfoCard>

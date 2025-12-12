@@ -304,11 +304,21 @@ const updateTaskCheckList = async (req, res) => {
         }
 
         // authorization check 
-        if (task.assignedTo.toString() !== req.user._id.toString() && req.user.role !== "admin") {
-            return res.status(403).json({
-                message: "You are not authorized to update this checklist"
-            });
+        // if (task.assignedTo.toString() !== req.user._id.toString() && req.user.role !== "admin") {
+        //     return res.status(403).json({
+        //         message: "You are not authorized to update this checklist"
+        //     });
+        // }
+        const isAssigned = task.assignedTo.some(
+        (userId) => userId.toString() === req.user._id.toString()
+        );
+
+        if (!isAssigned && req.user.role !== "admin") {
+        return res.status(403).json({
+            message: "You are not authorized to update this checklist",
+        });
         }
+
 
         // update checklist
         task.todoCheckList = todoCheckList;

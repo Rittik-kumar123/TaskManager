@@ -5,61 +5,117 @@ const excelJs = require("exceljs")
 //@desc Export all task as an excel file
 //@API Get /api/reports/export/tasks
 //@Access Private(Admin Only)
-const exportTasksReport = async(req,res) => {
-    try{
-        const tasks = await Task.find().populate("assignedTo","name email");
+// const exportTasksReport = async(req,res) => {
+//     try{
+//         const tasks = await Task.find().populate("assignedTo","name email");
 
-        const workbook = new excelJs.workbook();
-        const worksheet = new excelJs.addWorksheet("Tasks Report");
+//         const workbook = new excelJs.workbook();
+//         const worksheet = new excelJs.addWorksheet("Tasks Report");
 
-        worksheet.columns=[
-            {header:"Task ID",key:"_id",width:25},
-            {header:"Title",key:"title",width:30},
-            {header:"Description",key:"description",width:50},
-            {header:"Priority",key:"priority",width:15},
-            {header:"Status",key:"status",width:20},
-            {header:"Due Date",key:"dueDate",width:20},
-            {header:"Assigned To",key:"assignedTo",width:30}
-        ];
 
-        tasks.forEach((task)=>{
-            const assignedTo = task.assignedTo
-            .map((user)=>`${user.name} (${user.email})`)
-            .join(", ")
-            worksheet.addRow({
-                _id:user._id,
-                title:user.title,
-                description:user.description,
-                priority:user.priority,
-                status:user.status,
-                dueDate:task.dueDate.toISOString().split("T")[0],
-                assignedTo:assignedTo|| "Unassigned",
-            });
-        });
+//         worksheet.columns=[
+//             {header:"Task ID",key:"_id",width:25},
+//             {header:"Title",key:"title",width:30},
+//             {header:"Description",key:"description",width:50},
+//             {header:"Priority",key:"priority",width:15},
+//             {header:"Status",key:"status",width:20},
+//             {header:"Due Date",key:"dueDate",width:20},
+//             {header:"Assigned To",key:"assignedTo",width:30}
+//         ];
 
-        res.setHeader(
-            "Content-Type",
-            "application/vnd.openxmlformats-officedocument.spreedsheetml.sheet"
-        );
-        res.setHeader(
-            "Content-Disposition",
-            'attachment; filename = "tasks_report.xlsx"'
-        );
-        return workbook.xlsx.write(res).then(()=>{
-            res.end();
-        });
-    }
-    catch(error)
-    {
-        res.status(500).json({message:"Error in Exporting Task... ",error:error.message});
-    }
-}
+//         tasks.forEach((task)=>{
+//             const assignedTo = task.assignedTo
+//             .map((user)=>`${user.name} (${user.email})`)
+//             .join(", ")
+//             worksheet.addRow({
+//     _id: task._id,
+//     title: task.title,
+//     description: task.description,
+//     priority: task.priority,
+//     status: task.status,
+// });
+ 
+
+//         res.setHeader(
+//             "Content-Type",
+//             "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+//         );
+//         res.setHeader(
+//             "Content-Disposition",
+//             'attachment; filename = "tasks_report.xlsx"'
+//         );
+//         return workbook.xlsx.write(res).then(()=>{
+//             res.end();
+//         });
+//     }
+//     catch(error)
+//     {
+//         res.status(500).json({message:"Error in Exporting Task... ",error:error.message});
+//     }
+// }
+const exportTasksReport = async (req, res) => {
+  try {
+    const tasks = await Task.find().populate("assignedTo", "name email");
+
+    // FIXED workbook creation
+    const workbook = new excelJs.Workbook();
+    const worksheet = workbook.addWorksheet("Tasks Report");
+
+    worksheet.columns = [
+      { header: "Task ID", key: "_id", width: 25 },
+      { header: "Title", key: "title", width: 30 },
+      { header: "Description", key: "description", width: 50 },
+      { header: "Priority", key: "priority", width: 15 },
+      { header: "Status", key: "status", width: 20 },
+      { header: "Due Date", key: "dueDate", width: 20 },
+      { header: "Assigned To", key: "assignedTo", width: 30 },
+    ];
+
+    tasks.forEach((task) => {
+      const assignedTo = task.assignedTo
+        .map((user) => `${user.name} (${user.email})`)
+        .join(", ");
+
+      worksheet.addRow({
+        _id: task._id,
+        title: task.title,
+        description: task.description,
+        priority: task.priority,
+        status: task.status,
+        dueDate: task.dueDate
+          ? task.dueDate.toISOString().split("T")[0]
+          : "",
+        assignedTo: assignedTo || "Unassigned",
+      });
+    });
+
+    // FIXED MIME TYPE
+    res.setHeader(
+      "Content-Type",
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    );
+    res.setHeader(
+      "Content-Disposition",
+      'attachment; filename="tasks_report.xlsx"'
+    );
+
+    await workbook.xlsx.write(res);
+    res.end();
+  } catch (error) {
+    res.status(500).json({
+      message: "Error in Exporting Task...",
+      error: error.message,
+    });
+  }
+};
+
+
 //@desc Export all User-task as an excel file
 //@API Get /api/reports/export/users
 //@Access Private(Admin Only)
 const exportUsersReport = async(req,res) => {
     try{
-        const users=await Task.find().select("name email _id").lean();
+        const users=await User.find().select("name email _id").lean();
         const userTasks = await Task.find().populate(
             "assignedTo",
             "name email _id"
@@ -102,8 +158,9 @@ const exportUsersReport = async(req,res) => {
             }
         });
 
-        const workbook = new excelJs.workbook();
-        const worksheet = new excelJs.addWorksheet("Tasks Report");
+        const workbook = new excelJs.Workbook();
+        const worksheet = workbook.addWorksheet("Users Report");
+
 
         worksheet.columns=[
             {header:"User Name",key:"name",width:30},
@@ -120,7 +177,7 @@ const exportUsersReport = async(req,res) => {
 
         res.setHeader(
             "Content-Type",
-            "application/vnd.openxmlformats-officedocument.spreedsheetml.sheet"
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
         );
         res.setHeader(
             "Content-Disposition",

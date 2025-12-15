@@ -38,6 +38,11 @@ app.use("/api/users",userRoutes);
 //server upload file
 app.use("/uploads",express.static(path.join(__dirname,"uploads")));
 
+app.get("/check",(req,res)=>{
+    console.log("App is Running");
+    res.send("Site is working");
+})
+
 //Start Server
 const PORT = process.env.PORT ||5000;
 app.listen(PORT,()=>console.log(`Server is Running in port ${PORT}`));
